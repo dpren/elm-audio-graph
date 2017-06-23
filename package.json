@@ -1,0 +1,8 @@
+{
+  "name": "elm-audio-graph",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "virtual-audio-graph": "^0.19.0"
+  }
+}
