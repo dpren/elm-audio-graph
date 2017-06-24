@@ -1,5 +1,6 @@
 # elm-audio-graph
-A declarative Elm interface to the Web AudioNode API.
+A declarative Elm interface to the Web Audio node API.
+Powered by [virtual-audio-graph](https://github.com/benji6/virtual-audio-graph) on the JS side.
 
 ----
 
