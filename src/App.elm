@@ -24,8 +24,10 @@ renderAudioGraph =
 
 audioGraph : Model -> AudioContextGraph
 audioGraph model =
-    [ ( osc { oscDefaults | id = "osc1", waveform = Sawtooth, frequency = model.x }, [ "filter1" ] )
-    , ( osc { oscDefaults | id = "osc2", waveform = Sine, frequency = model.x }, [ "filter1" ] )
+    [ ( osc { oscDefaults | id = "osc1", waveform = Sine, frequency = model.x }, [ "panL" ] )
+    , ( osc { oscDefaults | id = "osc2", waveform = Sawtooth, frequency = model.x }, [ "panR" ] )
+    , ( panner { pannerDefaults | id = "panL", position = [1, 1, 0] }, [ "filter1" ] )
+    , ( panner { pannerDefaults | id = "panR", position = [-1, -1, 0] }, [ "filter1" ] )
     , ( filter { filterDefaults | id = "filter1", q = 10, frequency = model.y * 10 }, [ "gain1" ] )
     , ( gain { gainDefaults | id = "gain1", volume = model.y * 0.0005 }, [ "output" ] )
     ]

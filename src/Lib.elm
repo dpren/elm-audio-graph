@@ -18,6 +18,17 @@ type FilterMode
     | Allpass
 
 
+type DistanceModel
+    = Linear
+    | Inverse
+    | Exponential
+
+
+type PanningModel
+    = Equalpower
+    | HRTF
+
+
 type alias AudioContextGraph =
     List ( AudioNode, List String )
 
@@ -26,6 +37,7 @@ type AudioNode
     = GainNode GainProps
     | OscillatorNode OscillatorProps
     | BiquadFilterNode BiquadFilterProps
+    | PannerNode PannerProps
 
 
 type alias GainProps =
@@ -38,6 +50,7 @@ type alias OscillatorProps =
     { id : String
     , waveform : Waveform
     , frequency : Float
+    , detune : Float
     }
 
 
@@ -50,24 +63,40 @@ type alias BiquadFilterProps =
     }
 
 
+type alias PannerProps =
+    { id : String
+    , distanceModel : DistanceModel
+    , panningModel : PanningModel
+    , refDistance : Float
+    , maxDistance : Float
+    , rolloffFactor : Float
+    , coneInnerAngle : Float
+    , coneOuterAngle : Float
+    , coneOuterGain : Float
+    , position : List Float
+    , orientation : List Float
+    }
+
+
 gainDefaults : GainProps
 gainDefaults =
-    { id = "def_gain"
+    { id = "__default"
     , volume = 1
     }
 
 
 oscDefaults : OscillatorProps
 oscDefaults =
-    { id = "def_osc"
+    { id = "__default"
     , waveform = Sine
     , frequency = 400
+    , detune = 0
     }
 
 
 filterDefaults : BiquadFilterProps
 filterDefaults =
-    { id = "def_filter"
+    { id = "__default"
     , mode = Lowpass
     , frequency = 400
     , q = 1
@@ -75,13 +104,37 @@ filterDefaults =
     }
 
 
+pannerDefaults : PannerProps
+pannerDefaults =
+    { id = "__default"
+    , distanceModel = Inverse
+    , panningModel = HRTF
+    , refDistance = 1
+    , maxDistance = 10000
+    , rolloffFactor = 1
+    , coneInnerAngle = 360
+    , coneOuterAngle = 0
+    , coneOuterGain = 0
+    , position = [ 0, 0, 0 ]
+    , orientation = [ 1, 0, 0 ]
+    }
+
+
 gain : GainProps -> AudioNode
-gain = GainNode
+gain =
+    GainNode
 
 
 osc : OscillatorProps -> AudioNode
-osc = OscillatorNode
+osc =
+    OscillatorNode
 
 
 filter : BiquadFilterProps -> AudioNode
-filter = BiquadFilterNode
+filter =
+    BiquadFilterNode
+
+
+panner : PannerProps -> AudioNode
+panner =
+    PannerNode
