@@ -1,68 +1,87 @@
 module Lib exposing (..)
 
 
-type alias AudioContextGraph =
-    List ( AudioNode, List String )
-
-
-type AudioNode
-    = GainNode Gain
-    | OscillatorNode Oscillator
-
-
-type GainProp
-    = Volume Float
-
-
-type OscProp
-    = OscType Waveform
-    | Frequency Float
-
-
-type alias Gain =
-    { id : String
-    , props : List GainProp
-    }
-
-
-type alias Oscillator =
-    { id : String
-    , props : List OscProp
-    }
-
-
 type Waveform
     = Sawtooth
     | Square
     | Sine
 
 
-gain : String -> List GainProp -> AudioNode
-gain id props =
-    GainNode
-        { id = id
-        , props = props
-        }
+type FilterMode
+    = Lowpass
+    | Highpass
+    | Bandpass
+    | Lowshelf
+    | Highshelf
+    | Peaking
+    | Notch
+    | Allpass
 
 
-osc : String -> List OscProp -> AudioNode
-osc id props =
-    OscillatorNode
-        { id = id
-        , props = props
-        }
+type alias AudioContextGraph =
+    List ( AudioNode, List String )
 
 
-volume : Float -> GainProp
-volume =
-    Volume
+type AudioNode
+    = GainNode GainProps
+    | OscillatorNode OscillatorProps
+    | BiquadFilterNode BiquadFilterProps
 
 
-oscType : Waveform -> OscProp
-oscType =
-    OscType
+type alias GainProps =
+    { id : String
+    , volume : Float
+    }
 
 
-frequency : Float -> OscProp
-frequency =
-    Frequency
+type alias OscillatorProps =
+    { id : String
+    , waveform : Waveform
+    , frequency : Float
+    }
+
+
+type alias BiquadFilterProps =
+    { id : String
+    , mode : FilterMode
+    , frequency : Float
+    , q : Float
+    , detune : Float
+    }
+
+
+gainDefaults : GainProps
+gainDefaults =
+    { id = "def_gain"
+    , volume = 1
+    }
+
+
+oscDefaults : OscillatorProps
+oscDefaults =
+    { id = "def_osc"
+    , waveform = Sine
+    , frequency = 400
+    }
+
+
+filterDefaults : BiquadFilterProps
+filterDefaults =
+    { id = "def_filter"
+    , mode = Lowpass
+    , frequency = 400
+    , q = 1
+    , detune = 0
+    }
+
+
+gain : GainProps -> AudioNode
+gain = GainNode
+
+
+osc : OscillatorProps -> AudioNode
+osc = OscillatorNode
+
+
+filter : BiquadFilterProps -> AudioNode
+filter = BiquadFilterNode

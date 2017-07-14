@@ -11,25 +11,22 @@ encodeGraph =
 
 encodeNode : ( AudioNode, List String ) -> ( String, Value )
 encodeNode ( node, edges ) =
-    case node of
-        GainNode gainNode ->
-            gainPatternMatch gainNode edges
+    nodePatternMatch edges <|
+        case node of
+            GainNode gainNode ->
+                ( gainNode.id, "gain", encodeGainProps gainNode )
 
-        OscillatorNode oscNode ->
-            oscPatternMatch oscNode edges
+            OscillatorNode oscNode ->
+                ( oscNode.id, "oscillator", encodeOscProps oscNode )
 
-
-gainPatternMatch : Gain -> List String -> ( String, Value )
-gainPatternMatch node edges =
-    ( node.id
-    , list [ string "gain", encodeEdges edges, encodeGainProps node.props ]
-    )
+            BiquadFilterNode filterNode ->
+                ( filterNode.id, "biquadFilter", encodeFilterProps filterNode )
 
 
-oscPatternMatch : Oscillator -> List String -> ( String, Value )
-oscPatternMatch node edges =
-    ( node.id
-    , list [ string "oscillator", encodeEdges edges, encodeOscProps node.props ]
+nodePatternMatch : List String -> ( String, String, Value ) -> ( String, Value )
+nodePatternMatch edges ( id, apiName, encodedNodeProps ) =
+    ( id
+    , list [ string apiName, encodeEdges edges, encodedNodeProps ]
     )
 
 
@@ -38,26 +35,29 @@ encodeEdges =
     list << List.map string
 
 
-encodeGainProps : List GainProp -> Value
-encodeGainProps =
+encodeGainProps : GainProps -> Value
+encodeGainProps node =
     object
-        << List.map
-            (\prop ->
-                case prop of
-                    Volume vol ->
-                        ( "gain", float vol )
-            )
+        [ ( "gain", float node.volume ) ]
 
 
-encodeOscProps : List OscProp -> Value
-encodeOscProps =
+encodeOscProps : OscillatorProps -> Value
+encodeOscProps node =
     object
-        << List.map
-            (\prop ->
-                case prop of
-                    OscType wave ->
-                        ( "type", string <| String.toLower <| toString wave )
+        [ ( "type", toLowerStringValue node.waveform )
+        , ( "frequency", float node.frequency )
+        ]
 
-                    Frequency freq ->
-                        ( "frequency", float freq )
-            )
+
+encodeFilterProps : BiquadFilterProps -> Value
+encodeFilterProps node =
+    object
+        [ ( "type", toLowerStringValue node.mode )
+        , ( "frequency", float node.frequency )
+        , ( "Q", float node.q )
+        , ( "detune", float node.detune )
+        ]
+
+
+toLowerStringValue =
+    string << String.toLower << toString

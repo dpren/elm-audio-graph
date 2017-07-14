@@ -24,11 +24,10 @@ renderAudioGraph =
 
 audioGraph : Model -> AudioContextGraph
 audioGraph model =
-    [ ( osc "osc1" [ oscType Sine, frequency model.x ], [ "gain1" ] )
-    , ( osc "osc2" [ oscType Sawtooth, frequency model.x ], [ "gain2" ] )
-    , ( gain "gain1" [ volume 0.03 ], [ "master" ] )
-    , ( gain "gain2" [ volume 0.01 ], [ "master" ] )
-    , ( gain "master" [ volume (model.y * 0.0008) ], [ "output" ] )
+    [ ( osc { oscDefaults | id = "osc1", waveform = Sawtooth, frequency = model.x }, [ "filter1" ] )
+    , ( osc { oscDefaults | id = "osc2", waveform = Sine, frequency = model.x }, [ "filter1" ] )
+    , ( filter { filterDefaults | id = "filter1", q = 10, frequency = model.y * 10 }, [ "gain1" ] )
+    , ( gain { gainDefaults | id = "gain1", volume = model.y * 0.0005 }, [ "output" ] )
     ]
 
 
@@ -93,5 +92,10 @@ view : Model -> Html Msg
 view model =
     div []
         [ div [] [ text ("x: " ++ (toString model.x) ++ "  y: " ++ (toString model.y)) ]
-        , div [] [ text (toString <| audioGraph model) ]
+        , Html.br [] []
+        , div []
+            (List.map
+                (\node -> div [] [ text (toString <| node) ])
+                (audioGraph model)
+            )
         ]
