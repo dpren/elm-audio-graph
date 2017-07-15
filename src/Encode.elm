@@ -25,9 +25,12 @@ encodeNode index ( node, edges ) =
             PannerNode pannerNode ->
                 ( pannerNode.id, "panner", encodePannerProps pannerNode )
 
+            DelayNode delayNode ->
+                ( delayNode.id, "delay", encodeDelayProps delayNode )
+
 
 nodePatternMatch : Int -> List String -> ( String, String, Value ) -> ( String, Value )
-nodePatternMatch index edges ( id, apiName, encodedNodeProps ) =
+nodePatternMatch index edges ( id, apiName, encodedProps ) =
     let
         uid =
             -- allows unnamed nodes until we can implement proper validattion
@@ -37,7 +40,7 @@ nodePatternMatch index edges ( id, apiName, encodedNodeProps ) =
                 id
     in
         ( uid
-        , list [ string apiName, encodeEdges edges, encodedNodeProps ]
+        , list [ string apiName, encodeEdges edges, encodedProps ]
         )
 
 
@@ -84,6 +87,14 @@ encodePannerProps node =
         , ( "coneOuterGain", float node.coneOuterGain )
         , ( "position", list <| List.map float node.position )
         , ( "orientation", list <| List.map float node.orientation )
+        ]
+
+
+encodeDelayProps : DelayProps -> Value
+encodeDelayProps node =
+    object
+        [ ( "delayTime", float node.delayTime )
+        , ( "maxDelayTime", float node.maxDelayTime )
         ]
 
 

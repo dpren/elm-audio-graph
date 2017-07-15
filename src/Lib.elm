@@ -38,6 +38,7 @@ type AudioNode
     | OscillatorNode OscillatorProps
     | BiquadFilterNode BiquadFilterProps
     | PannerNode PannerProps
+    | DelayNode DelayProps
 
 
 type alias GainProps =
@@ -75,6 +76,13 @@ type alias PannerProps =
     , coneOuterGain : Float
     , position : List Float
     , orientation : List Float
+    }
+
+
+type alias DelayProps =
+    { id : String
+    , delayTime : Float
+    , maxDelayTime : Float
     }
 
 
@@ -120,6 +128,14 @@ pannerDefaults =
     }
 
 
+delayDefaults : DelayProps
+delayDefaults =
+    { id = "__default"
+    , delayTime = 0
+    , maxDelayTime = 0
+    }
+
+
 gain : GainProps -> AudioNode
 gain =
     GainNode
@@ -138,3 +154,8 @@ filter =
 panner : PannerProps -> AudioNode
 panner =
     PannerNode
+
+
+delay : DelayProps -> AudioNode
+delay =
+    DelayNode

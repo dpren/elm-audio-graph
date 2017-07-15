@@ -26,10 +26,19 @@ audioGraph : Model -> AudioContextGraph
 audioGraph model =
     [ ( osc { oscDefaults | id = "osc1", waveform = Sine, frequency = model.x }, [ "panL" ] )
     , ( osc { oscDefaults | id = "osc2", waveform = Sawtooth, frequency = model.x }, [ "panR" ] )
-    , ( panner { pannerDefaults | id = "panL", position = [1, 1, 0] }, [ "filter1" ] )
-    , ( panner { pannerDefaults | id = "panR", position = [-1, -1, 0] }, [ "filter1" ] )
-    , ( filter { filterDefaults | id = "filter1", q = 10, frequency = model.y * 10 }, [ "gain1" ] )
-    , ( gain { gainDefaults | id = "gain1", volume = model.y * 0.0005 }, [ "output" ] )
+    , ( panner { pannerDefaults | id = "panL", position = [ 1, 1, 0 ] }, [ "filter" ] )
+    , ( panner { pannerDefaults | id = "panR", position = [ -1, -1, 0 ] }, [ "filter" ] )
+    , ( filter { filterDefaults | id = "filter", q = 10, frequency = model.y * 10 }, [ "delayInput", "master" ] )
+    ]
+        ++ madSpookyDelay 0.2 "delayInput" "master"
+        ++ [ ( gain { gainDefaults | id = "master", volume = model.y * 0.0005 }, [ "output" ] )
+           ]
+
+
+madSpookyDelay vol input output =
+    [ ( gain { gainDefaults | id = input, volume = vol }, [ "delay" ] )
+    , ( delay { delayDefaults | id = "delay", delayTime = (1 / 3), maxDelayTime = (1 / 3) }, [ "feedbackGain", output ] )
+    , ( gain { gainDefaults | id = "feedbackGain", volume = 0.02 }, [ input ] )
     ]
 
 
