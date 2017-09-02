@@ -30,12 +30,12 @@ audioGraph model =
     , ( panner { pannerDefaults | id = "panR", position = [ -1, -1, 0 ] }, [ "filter" ] )
     , ( filter { filterDefaults | id = "filter", q = 10, frequency = model.y * 10 }, [ "delayInput", "master" ] )
     ]
-        ++ madSpookyDelay 0.2 "delayInput" "master"
+        ++ customDelay 0.2 "delayInput" "master"
         ++ [ ( gain { gainDefaults | id = "master", volume = model.y * 0.0005 }, [ "output" ] )
            ]
 
 
-madSpookyDelay vol input output =
+customDelay vol input output =
     [ ( gain { gainDefaults | id = input, volume = vol }, [ "delay" ] )
     , ( delay { delayDefaults | id = "delay", delayTime = (1 / 3), maxDelayTime = (1 / 3) }, [ "feedbackGain", output ] )
     , ( gain { gainDefaults | id = "feedbackGain", volume = 0.02 }, [ input ] )
