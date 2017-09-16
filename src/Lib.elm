@@ -1,10 +1,34 @@
 module Lib exposing (..)
 
 
+type alias AudioGraph =
+    List AudioNode
+
+
+type AudioNode
+    = Gain GainParams NodeEdges
+    | Osc OscillatorParams NodeEdges
+    | Filter BiquadFilterParams NodeEdges
+    | Delay DelayParams NodeEdges
+
+
+type alias NodeEdges =
+    List (NodePort NodeId)
+
+
+type alias NodeId =
+    Int
+
+
+type AudioInput
+    = AudioInput
+
+
 type Waveform
-    = Sawtooth
+    = Sine
     | Square
-    | Sine
+    | Sawtooth
+    | Triangle
 
 
 type FilterMode
@@ -18,45 +42,94 @@ type FilterMode
     | Allpass
 
 
-type DistanceModel
-    = Linear
-    | Inverse
-    | Exponential
+
+-------- Node Constructors --------
 
 
-type PanningModel
-    = Equalpower
-    | HRTF
+{-| <https://developer.mozilla.org/en-US/docs/Web/API/GainNode>
+-}
+type alias GainDefaults =
+    { volume : Float
+    }
 
 
-type alias AudioContextGraph =
-    List ( AudioNode, List String )
+gainDefaults : GainDefaults
+gainDefaults =
+    { volume = 1
+    }
 
 
-type AudioNode
-    = GainNode GainProps
-    | OscillatorNode OscillatorProps
-    | BiquadFilterNode BiquadFilterProps
-    | PannerNode PannerProps
-    | DelayNode DelayProps
-
-
-type alias GainProps =
-    { id : String
+type alias GainParams =
+    { id : NodeId
+    , input : AudioInput
     , volume : Float
     }
 
 
-type alias OscillatorProps =
-    { id : String
+gainParams : NodeId -> GainDefaults -> GainParams
+gainParams id defaults =
+    { id = id
+    , input = AudioInput
+    , volume = defaults.volume
+    }
+
+
+{-| <https://developer.mozilla.org/en-US/docs/Web/API/OscillatorNode>
+-}
+type alias OscillatorDefaults =
+    { waveform : Waveform
+    , frequency : Float
+    , detune : Float
+    }
+
+
+oscDefaults : OscillatorDefaults
+oscDefaults =
+    { waveform = Sine
+    , frequency = 440
+    , detune = 0
+    }
+
+
+type alias OscillatorParams =
+    { id : NodeId
     , waveform : Waveform
     , frequency : Float
     , detune : Float
     }
 
 
-type alias BiquadFilterProps =
-    { id : String
+oscParams : NodeId -> OscillatorDefaults -> OscillatorParams
+oscParams id defaults =
+    { id = id
+    , waveform = defaults.waveform
+    , frequency = defaults.frequency
+    , detune = defaults.detune
+    }
+
+
+{-| <https://developer.mozilla.org/en-US/docs/Web/API/BiquadFilterNode>
+-}
+type alias BiquadFilterDefaults =
+    { mode : FilterMode
+    , frequency : Float
+    , q : Float
+    , detune : Float
+    }
+
+
+filterDefaults : BiquadFilterDefaults
+filterDefaults =
+    { mode = Lowpass
+    , frequency = 350
+    , q = 1
+    , detune = 0
+    }
+
+
+type alias BiquadFilterParams =
+    { id : NodeId
+    , input : AudioInput
     , mode : FilterMode
     , frequency : Float
     , q : Float
@@ -64,98 +137,86 @@ type alias BiquadFilterProps =
     }
 
 
-type alias PannerProps =
-    { id : String
-    , distanceModel : DistanceModel
-    , panningModel : PanningModel
-    , refDistance : Float
-    , maxDistance : Float
-    , rolloffFactor : Float
-    , coneInnerAngle : Float
-    , coneOuterAngle : Float
-    , coneOuterGain : Float
-    , position : List Float
-    , orientation : List Float
+filterParams : NodeId -> BiquadFilterDefaults -> BiquadFilterParams
+filterParams id defaults =
+    { id = id
+    , input = AudioInput
+    , mode = defaults.mode
+    , frequency = defaults.frequency
+    , q = defaults.q
+    , detune = defaults.detune
     }
 
 
-type alias DelayProps =
-    { id : String
+{-| <https://developer.mozilla.org/en-US/docs/Web/API/DelayNode>
+-}
+type alias DelayDefaults =
+    { delayTime : Float
+    , maxDelayTime : Float
+    }
+
+
+delayDefaults : DelayDefaults
+delayDefaults =
+    { delayTime = 0
+    , maxDelayTime = 0
+    }
+
+
+type alias DelayParams =
+    { id : NodeId
     , delayTime : Float
     , maxDelayTime : Float
     }
 
 
-gainDefaults : GainProps
-gainDefaults =
-    { id = "__default"
-    , volume = 1
-    }
-
-
-oscDefaults : OscillatorProps
-oscDefaults =
-    { id = "__default"
-    , waveform = Sine
-    , frequency = 400
-    , detune = 0
-    }
-
-
-filterDefaults : BiquadFilterProps
-filterDefaults =
-    { id = "__default"
-    , mode = Lowpass
-    , frequency = 400
-    , q = 1
-    , detune = 0
-    }
-
-
-pannerDefaults : PannerProps
-pannerDefaults =
-    { id = "__default"
-    , distanceModel = Inverse
-    , panningModel = HRTF
-    , refDistance = 1
-    , maxDistance = 10000
-    , rolloffFactor = 1
-    , coneInnerAngle = 360
-    , coneOuterAngle = 0
-    , coneOuterGain = 0
-    , position = [ 0, 0, 0 ]
-    , orientation = [ 1, 0, 0 ]
-    }
-
-
-delayDefaults : DelayProps
-delayDefaults =
-    { id = "__default"
+delayParams : NodeId -> DelayDefaults -> DelayParams
+delayParams id defaults =
+    { id = id
     , delayTime = 0
     , maxDelayTime = 0
     }
 
 
-gain : GainProps -> AudioNode
-gain =
-    GainNode
+
+-------- Param Ports --------
 
 
-osc : OscillatorProps -> AudioNode
-osc =
-    OscillatorNode
+type NodePort id
+    = Output
+    | Input id
+    | Volume id
+    | Frequency id
+    | Detune id
+    | Q id
+    | DelayTime id
 
 
-filter : BiquadFilterProps -> AudioNode
-filter =
-    BiquadFilterNode
+input : { a | input : AudioInput, id : NodeId } -> NodePort NodeId
+input a =
+    Input a.id
 
 
-panner : PannerProps -> AudioNode
-panner =
-    PannerNode
+volume : { a | volume : Float, id : NodeId } -> NodePort NodeId
+volume a =
+    Volume a.id
 
 
-delay : DelayProps -> AudioNode
-delay =
-    DelayNode
+frequency : { a | frequency : Float, id : NodeId } -> NodePort NodeId
+frequency a =
+    Frequency a.id
+
+
+detune : { a | detune : Float, id : NodeId } -> NodePort NodeId
+detune a =
+    Detune a.id
+
+
+q : { a | q : Float, id : NodeId } -> NodePort NodeId
+q a =
+    Q a.id
+
+
+delayTime : { a | delayTime : Float, id : NodeId } -> NodePort NodeId
+delayTime a =
+    DelayTime a.id

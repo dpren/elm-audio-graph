@@ -1,49 +1,39 @@
-port module App exposing (..)
+module App exposing (..)
 
-import Html exposing (Html, text, div)
-import Json.Encode exposing (Value)
-import Lib exposing (..)
-import Encode exposing (encodeGraph)
+import Html exposing (Html, text, div, br)
 import Mouse exposing (Position)
+import Lib exposing (..)
+import Encode exposing (updateAudioGraph)
 
 
----- PORT ----
-
-
-port renderContextJs : Value -> Cmd msg
-
-
-
----- AUDIO GRAPH ----
-
-
-renderAudioGraph : Model -> Cmd msg
-renderAudioGraph =
-    renderContextJs << encodeGraph << audioGraph
-
-
-audioGraph : Model -> AudioContextGraph
+audioGraph : Model -> AudioGraph
 audioGraph model =
-    [ ( osc { oscDefaults | id = "osc1", waveform = Sine, frequency = model.x }, [ "panL" ] )
-    , ( osc { oscDefaults | id = "osc2", waveform = Sawtooth, frequency = model.x }, [ "panR" ] )
-    , ( panner { pannerDefaults | id = "panL", position = [ 1, 1, 0 ] }, [ "filter" ] )
-    , ( panner { pannerDefaults | id = "panR", position = [ -1, -1, 0 ] }, [ "filter" ] )
-    , ( filter { filterDefaults | id = "filter", q = 10, frequency = model.y * 10 }, [ "delayInput", "master" ] )
-    ]
-        ++ customDelay 0.2 "delayInput" "master"
-        ++ [ ( gain { gainDefaults | id = "master", volume = model.y * 0.0005 }, [ "output" ] )
-           ]
+    let
+        lfo =
+            oscParams 0 { oscDefaults | frequency = model.y / 100 }
+
+        lfoGain =
+            gainParams 1 { gainDefaults | volume = model.y }
+
+        saw =
+            oscParams 2 { oscDefaults | waveform = Sawtooth, frequency = model.x }
+
+        lowpass =
+            filterParams 3 { filterDefaults | frequency = 900, q = 10 }
+
+        master =
+            gainParams 4 { gainDefaults | volume = model.y * 0.001 }
+    in
+        [ Osc lfo [ input lfoGain ]
+        , Gain lfoGain [ frequency lowpass ]
+        , Osc saw [ input lowpass ]
+        , Filter lowpass [ input master ]
+        , Gain master [ Output ]
+        ]
 
 
-customDelay vol input output =
-    [ ( gain { gainDefaults | id = input, volume = vol }, [ "delay" ] )
-    , ( delay { delayDefaults | id = "delay", delayTime = (1 / 3), maxDelayTime = (1 / 3) }, [ "feedbackGain", output ] )
-    , ( gain { gainDefaults | id = "feedbackGain", volume = 0.02 }, [ input ] )
-    ]
 
-
-
----- PROGRAM ----
+----- PROGRAM ----
 
 
 main : Program Never Model Msg
@@ -83,7 +73,9 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Position x y ->
-            ( { model | x = toFloat x, y = toFloat y }, renderAudioGraph model )
+            ( { model | x = toFloat x, y = toFloat y }
+            , updateAudioGraph (audioGraph model)
+            )
 
 
 
@@ -103,7 +95,7 @@ view : Model -> Html Msg
 view model =
     div []
         [ div [] [ text ("x: " ++ (toString model.x) ++ "  y: " ++ (toString model.y)) ]
-        , Html.br [] []
+        , br [] []
         , div []
             (List.map
                 (\node -> div [] [ text (toString <| node) ])

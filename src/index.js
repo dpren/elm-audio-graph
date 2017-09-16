@@ -17,8 +17,8 @@ const virtualAudioGraph = createVirtualAudioGraph({
 });
 
 app.ports.renderContextJs.subscribe(function(graph) {
-  // console.info(graph);
+  // console.log(graph);
   virtualAudioGraph.update(graph);
 });
 
-window.v = virtualAudioGraph;
+// window.v = virtualAudioGraph;

@@ -1,62 +1,92 @@
-module Encode exposing (..)
+port module Encode exposing (updateAudioGraph)
 
-import Json.Encode exposing (Value, list, object, string, float)
+import Json.Encode exposing (Value, list, object, string, float, int)
 import Lib exposing (..)
 
 
-encodeGraph : AudioContextGraph -> Value
+updateAudioGraph : AudioGraph -> Cmd msg
+updateAudioGraph =
+    renderContextJs << encodeGraph
+
+
+port renderContextJs : Value -> Cmd msg
+
+
+encodeGraph : AudioGraph -> Value
 encodeGraph =
-    object << List.indexedMap encodeNode
+    object << List.map encodeNode
 
 
-encodeNode : Int -> ( AudioNode, List String ) -> ( String, Value )
-encodeNode index ( node, edges ) =
-    nodePatternMatch index edges <|
+encodeNode : AudioNode -> ( String, Value )
+encodeNode node =
+    nodePatternMatch <|
         case node of
-            GainNode gainNode ->
-                ( gainNode.id, "gain", encodeGainProps gainNode )
+            Gain params edges ->
+                ( params.id, "gain", edges, encodeGainParams params )
 
-            OscillatorNode oscNode ->
-                ( oscNode.id, "oscillator", encodeOscProps oscNode )
+            Osc params edges ->
+                ( params.id, "oscillator", edges, encodeOscParams params )
 
-            BiquadFilterNode filterNode ->
-                ( filterNode.id, "biquadFilter", encodeFilterProps filterNode )
+            Filter params edges ->
+                ( params.id, "biquadFilter", edges, encodeFilterParams params )
 
-            PannerNode pannerNode ->
-                ( pannerNode.id, "panner", encodePannerProps pannerNode )
-
-            DelayNode delayNode ->
-                ( delayNode.id, "delay", encodeDelayProps delayNode )
+            Delay params edges ->
+                ( params.id, "delay", edges, encodeDelayParams params )
 
 
-nodePatternMatch : Int -> List String -> ( String, String, Value ) -> ( String, Value )
-nodePatternMatch index edges ( id, apiName, encodedProps ) =
-    let
-        uid =
-            -- allows unnamed nodes until we can implement proper validattion
-            if id == "__default" then
-                (id ++ (toString index))
-            else
-                id
-    in
-        ( uid
-        , list [ string apiName, encodeEdges edges, encodedProps ]
-        )
+nodePatternMatch : ( NodeId, String, NodeEdges, Value ) -> ( String, Value )
+nodePatternMatch ( id, apiName, edges, encodedParams ) =
+    -- matches virtual-audio-graph api
+    ( toString id
+    , list [ string apiName, encodeEdges edges, encodedParams ]
+    )
 
 
-encodeEdges : List String -> Value
+encodeEdges : NodeEdges -> Value
 encodeEdges =
-    list << List.map string
+    list << List.map encodeNodePort
 
 
-encodeGainProps : GainProps -> Value
-encodeGainProps node =
+encodeNodePort : NodePort NodeId -> Value
+encodeNodePort nodePort =
+    let
+        keyDestObject id param =
+            object
+                [ ( "key", toStringValue id )
+                , ( "destination", string param )
+                ]
+    in
+        case nodePort of
+            Output ->
+                string "output"
+
+            Input id ->
+                toStringValue id
+
+            Volume id ->
+                keyDestObject id "gain"
+
+            Frequency id ->
+                keyDestObject id "frequency"
+
+            Detune id ->
+                keyDestObject id "detune"
+
+            Q id ->
+                keyDestObject id "q"
+
+            DelayTime id ->
+                keyDestObject id "delayTime"
+
+
+encodeGainParams : GainParams -> Value
+encodeGainParams node =
     object
         [ ( "gain", float node.volume ) ]
 
 
-encodeOscProps : OscillatorProps -> Value
-encodeOscProps node =
+encodeOscParams : OscillatorParams -> Value
+encodeOscParams node =
     object
         [ ( "type", toLowerStringValue node.waveform )
         , ( "frequency", float node.frequency )
@@ -64,8 +94,8 @@ encodeOscProps node =
         ]
 
 
-encodeFilterProps : BiquadFilterProps -> Value
-encodeFilterProps node =
+encodeFilterParams : BiquadFilterParams -> Value
+encodeFilterParams node =
     object
         [ ( "type", toLowerStringValue node.mode )
         , ( "frequency", float node.frequency )
@@ -74,28 +104,16 @@ encodeFilterProps node =
         ]
 
 
-encodePannerProps : PannerProps -> Value
-encodePannerProps node =
-    object
-        [ ( "distanceModel", toLowerStringValue node.distanceModel )
-        , ( "panningModel", toLowerStringValue node.panningModel )
-        , ( "refDistance", float node.refDistance )
-        , ( "maxDistance", float node.maxDistance )
-        , ( "rolloffFactor", float node.rolloffFactor )
-        , ( "coneInnerAngle", float node.coneInnerAngle )
-        , ( "coneOuterAngle", float node.coneOuterAngle )
-        , ( "coneOuterGain", float node.coneOuterGain )
-        , ( "position", list <| List.map float node.position )
-        , ( "orientation", list <| List.map float node.orientation )
-        ]
-
-
-encodeDelayProps : DelayProps -> Value
-encodeDelayProps node =
+encodeDelayParams : DelayParams -> Value
+encodeDelayParams node =
     object
         [ ( "delayTime", float node.delayTime )
         , ( "maxDelayTime", float node.maxDelayTime )
         ]
+
+
+toStringValue =
+    string << toString
 
 
 toLowerStringValue =
