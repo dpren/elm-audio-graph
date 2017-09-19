@@ -7,7 +7,7 @@ type alias AudioGraph =
 
 type AudioNode
     = Gain GainParams NodeEdges
-    | Osc OscillatorParams NodeEdges
+    | Oscillator OscillatorParams NodeEdges
     | Filter BiquadFilterParams NodeEdges
     | Delay DelayParams NodeEdges
 
@@ -83,8 +83,8 @@ type alias OscillatorDefaults =
     }
 
 
-oscDefaults : OscillatorDefaults
-oscDefaults =
+oscillatorDefaults : OscillatorDefaults
+oscillatorDefaults =
     { waveform = Sine
     , frequency = 440
     , detune = 0
@@ -99,8 +99,8 @@ type alias OscillatorParams =
     }
 
 
-oscParams : NodeId -> OscillatorDefaults -> OscillatorParams
-oscParams id defaults =
+oscillatorParams : NodeId -> OscillatorDefaults -> OscillatorParams
+oscillatorParams id defaults =
     { id = id
     , waveform = defaults.waveform
     , frequency = defaults.frequency

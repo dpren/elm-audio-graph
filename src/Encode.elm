@@ -24,8 +24,8 @@ encodeNode node =
             Gain params edges ->
                 ( params.id, "gain", edges, encodeGainParams params )
 
-            Osc params edges ->
-                ( params.id, "oscillator", edges, encodeOscParams params )
+            Oscillator params edges ->
+                ( params.id, "oscillator", edges, encodeOscillatorParams params )
 
             Filter params edges ->
                 ( params.id, "biquadFilter", edges, encodeFilterParams params )
@@ -85,8 +85,8 @@ encodeGainParams node =
         [ ( "gain", float node.volume ) ]
 
 
-encodeOscParams : OscillatorParams -> Value
-encodeOscParams node =
+encodeOscillatorParams : OscillatorParams -> Value
+encodeOscillatorParams node =
     object
         [ ( "type", toLowerStringValue node.waveform )
         , ( "frequency", float node.frequency )
