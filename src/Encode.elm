@@ -22,22 +22,22 @@ encodeNode node =
     nodePatternMatch <|
         case node of
             Gain params edges ->
-                ( params.id, "gain", edges, encodeGainParams params )
+                ( toHashString params, "gain", edges, encodeGainParams params )
 
             Oscillator params edges ->
-                ( params.id, "oscillator", edges, encodeOscillatorParams params )
+                ( toHashString params, "oscillator", edges, encodeOscillatorParams params )
 
             Filter params edges ->
-                ( params.id, "biquadFilter", edges, encodeFilterParams params )
+                ( toHashString params, "biquadFilter", edges, encodeFilterParams params )
 
             Delay params edges ->
-                ( params.id, "delay", edges, encodeDelayParams params )
+                ( toHashString params, "delay", edges, encodeDelayParams params )
 
 
 nodePatternMatch : ( NodeId, String, NodeEdges, Value ) -> ( String, Value )
 nodePatternMatch ( id, apiName, edges, encodedParams ) =
     -- matches virtual-audio-graph api
-    ( toString id
+    ( id
     , list [ string apiName, encodeEdges edges, encodedParams ]
     )
 
@@ -52,7 +52,7 @@ encodeNodePort nodePort =
     let
         keyDestObject id param =
             object
-                [ ( "key", toStringValue id )
+                [ ( "key", string id )
                 , ( "destination", string param )
                 ]
     in
@@ -61,7 +61,7 @@ encodeNodePort nodePort =
                 string "output"
 
             Input id ->
-                toStringValue id
+                string id
 
             Volume id ->
                 keyDestObject id "gain"
@@ -110,10 +110,6 @@ encodeDelayParams node =
         [ ( "delayTime", float node.delayTime )
         , ( "maxDelayTime", float node.maxDelayTime )
         ]
-
-
-toStringValue =
-    string << toString
 
 
 toLowerStringValue =

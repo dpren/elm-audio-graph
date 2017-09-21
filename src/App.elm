@@ -10,19 +10,19 @@ audioGraph : Model -> AudioGraph
 audioGraph model =
     let
         lfo =
-            oscillatorParams 0 { oscillatorDefaults | frequency = model.y / 100 }
+            { oscillatorParams | frequency = model.y / 100 }
 
         lfoGain =
-            gainParams 1 { gainDefaults | volume = model.y }
+            { gainParams | volume = model.y }
 
         saw =
-            oscillatorParams 2 { oscillatorDefaults | waveform = Sawtooth, frequency = model.x }
+            { oscillatorParams | waveform = Sawtooth, frequency = model.x }
 
         lowpass =
-            filterParams 3 { filterDefaults | frequency = 900, q = 10 }
+            { filterParams | frequency = 900, q = 10 }
 
         master =
-            gainParams 4 { gainDefaults | volume = model.y * 0.001 }
+            { gainParams | volume = model.y * 0.001 }
     in
         [ Oscillator lfo [ input lfoGain ]
         , Gain lfoGain [ frequency lowpass ]

@@ -1,5 +1,7 @@
 module Lib exposing (..)
 
+import Murmur3
+
 
 type alias AudioGraph =
     List AudioNode
@@ -16,8 +18,12 @@ type alias NodeEdges =
     List (NodePort NodeId)
 
 
+
+--
+
+
 type alias NodeId =
-    Int
+    String
 
 
 type AudioInput
@@ -48,88 +54,40 @@ type FilterMode
 
 {-| <https://developer.mozilla.org/en-US/docs/Web/API/GainNode>
 -}
-type alias GainDefaults =
-    { volume : Float
-    }
-
-
-gainDefaults : GainDefaults
-gainDefaults =
-    { volume = 1
-    }
-
-
 type alias GainParams =
-    { id : NodeId
-    , input : AudioInput
+    { input : AudioInput
     , volume : Float
     }
 
 
-gainParams : NodeId -> GainDefaults -> GainParams
-gainParams id defaults =
-    { id = id
-    , input = AudioInput
-    , volume = defaults.volume
+gainParams : GainParams
+gainParams =
+    { input = AudioInput
+    , volume = 1
     }
 
 
 {-| <https://developer.mozilla.org/en-US/docs/Web/API/OscillatorNode>
 -}
-type alias OscillatorDefaults =
+type alias OscillatorParams =
     { waveform : Waveform
     , frequency : Float
     , detune : Float
     }
 
 
-oscillatorDefaults : OscillatorDefaults
-oscillatorDefaults =
+oscillatorParams : OscillatorParams
+oscillatorParams =
     { waveform = Sine
     , frequency = 440
     , detune = 0
     }
 
 
-type alias OscillatorParams =
-    { id : NodeId
-    , waveform : Waveform
-    , frequency : Float
-    , detune : Float
-    }
-
-
-oscillatorParams : NodeId -> OscillatorDefaults -> OscillatorParams
-oscillatorParams id defaults =
-    { id = id
-    , waveform = defaults.waveform
-    , frequency = defaults.frequency
-    , detune = defaults.detune
-    }
-
-
 {-| <https://developer.mozilla.org/en-US/docs/Web/API/BiquadFilterNode>
 -}
-type alias BiquadFilterDefaults =
-    { mode : FilterMode
-    , frequency : Float
-    , q : Float
-    , detune : Float
-    }
-
-
-filterDefaults : BiquadFilterDefaults
-filterDefaults =
-    { mode = Lowpass
-    , frequency = 350
-    , q = 1
-    , detune = 0
-    }
-
-
 type alias BiquadFilterParams =
-    { id : NodeId
-    , input : AudioInput
+    { input : AudioInput
     , mode : FilterMode
     , frequency : Float
     , q : Float
@@ -137,43 +95,27 @@ type alias BiquadFilterParams =
     }
 
 
-filterParams : NodeId -> BiquadFilterDefaults -> BiquadFilterParams
-filterParams id defaults =
-    { id = id
-    , input = AudioInput
-    , mode = defaults.mode
-    , frequency = defaults.frequency
-    , q = defaults.q
-    , detune = defaults.detune
+filterParams : BiquadFilterParams
+filterParams =
+    { input = AudioInput
+    , mode = Lowpass
+    , frequency = 350
+    , q = 1
+    , detune = 0
     }
 
 
 {-| <https://developer.mozilla.org/en-US/docs/Web/API/DelayNode>
 -}
-type alias DelayDefaults =
+type alias DelayParams =
     { delayTime : Float
     , maxDelayTime : Float
     }
 
 
-delayDefaults : DelayDefaults
-delayDefaults =
+delayParams : DelayParams
+delayParams =
     { delayTime = 0
-    , maxDelayTime = 0
-    }
-
-
-type alias DelayParams =
-    { id : NodeId
-    , delayTime : Float
-    , maxDelayTime : Float
-    }
-
-
-delayParams : NodeId -> DelayDefaults -> DelayParams
-delayParams id defaults =
-    { id = id
-    , delayTime = 0
     , maxDelayTime = 0
     }
 
@@ -192,31 +134,40 @@ type NodePort id
     | DelayTime id
 
 
-input : { a | input : AudioInput, id : NodeId } -> NodePort NodeId
+input : { a | input : AudioInput } -> NodePort NodeId
 input a =
-    Input a.id
+    Input (toHashString a)
 
 
-volume : { a | volume : Float, id : NodeId } -> NodePort NodeId
+volume : { a | volume : Float } -> NodePort NodeId
 volume a =
-    Volume a.id
+    Volume (toHashString a)
 
 
-frequency : { a | frequency : Float, id : NodeId } -> NodePort NodeId
+frequency : { a | frequency : Float } -> NodePort NodeId
 frequency a =
-    Frequency a.id
+    Frequency (toHashString a)
 
 
-detune : { a | detune : Float, id : NodeId } -> NodePort NodeId
+detune : { a | detune : Float } -> NodePort NodeId
 detune a =
-    Detune a.id
+    Detune (toHashString a)
 
 
-q : { a | q : Float, id : NodeId } -> NodePort NodeId
+q : { a | q : Float } -> NodePort NodeId
 q a =
-    Q a.id
+    Q (toHashString a)
 
 
-delayTime : { a | delayTime : Float, id : NodeId } -> NodePort NodeId
+delayTime : { a | delayTime : Float } -> NodePort NodeId
 delayTime a =
-    DelayTime a.id
+    DelayTime (toHashString a)
+
+
+
+--
+
+
+toHashString : a -> NodeId
+toHashString =
+    toString >> Murmur3.hashString 0 >> toString
