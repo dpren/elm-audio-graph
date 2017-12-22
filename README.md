@@ -8,14 +8,17 @@ npm i
 elm-app start
 ```
 
-----
+## Demo
+Volume Warning!
 
+[dpren.github.io/elm-audio-graph](https://dpren.github.io/elm-audio-graph)
+
+
+## Build scripts
 This project is bootstrapped with [Create Elm App](https://github.com/halfzebra/create-elm-app).
 You can read the [full guide here](https://github.com/halfzebra/create-elm-app/blob/master/template/README.md).
 
-## Available scripts
 In the project directory you can run:
-
 
 #### `elm-app start`
 Runs the app in development mode at [http://localhost:3000](http://localhost:3000)
