@@ -87,7 +87,7 @@ encodeGainParams node =
 encodeOscillatorParams : OscillatorParams -> Value
 encodeOscillatorParams node =
     object
-        [ ( "type", toLowerStringValue node.waveform )
+        [ ( "type", encodeWaveform node.waveform )
         , ( "frequency", float node.frequency )
         , ( "detune", float node.detune )
         ]
@@ -96,7 +96,7 @@ encodeOscillatorParams node =
 encodeFilterParams : BiquadFilterParams -> Value
 encodeFilterParams node =
     object
-        [ ( "type", toLowerStringValue node.mode )
+        [ ( "type", encodeFilterMode node.mode )
         , ( "frequency", float node.frequency )
         , ( "Q", float node.q )
         , ( "detune", float node.detune )
@@ -113,7 +113,3 @@ encodeDelayParams node =
 
 toStringValue =
     string << toString
-
-
-toLowerStringValue =
-    string << String.toLower << toString
