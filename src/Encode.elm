@@ -1,6 +1,6 @@
 port module Encode exposing (updateAudioGraph)
 
-import Json.Encode exposing (Value, list, object, string, float, int)
+import Json.Encode exposing (Value, float, int, list, object, string)
 import Lib exposing (..)
 
 
@@ -19,23 +19,22 @@ encodeGraph =
 
 encodeNode : AudioNode -> ( String, Value )
 encodeNode node =
-    nodePatternMatch <|
-        case node of
-            Gain params edges ->
-                ( params.id, "gain", edges, encodeGainParams params )
+    case node of
+        Gain params edges ->
+            nodePatternMatch params.id "gain" edges encodeGainParams params
 
-            Oscillator params edges ->
-                ( params.id, "oscillator", edges, encodeOscillatorParams params )
+        Oscillator params edges ->
+            nodePatternMatch params.id "oscillator" edges encodeOscillatorParams params
 
-            Filter params edges ->
-                ( params.id, "biquadFilter", edges, encodeFilterParams params )
+        Filter params edges ->
+            nodePatternMatch params.id "biquadFilter" edges encodeFilterParams params
 
-            Delay params edges ->
-                ( params.id, "delay", edges, encodeDelayParams params )
+        Delay params edges ->
+            nodePatternMatch params.id "delay" edges encodeDelayParams params
 
 
-nodePatternMatch : ( NodeId, String, NodeEdges, Value ) -> ( String, Value )
-nodePatternMatch ( id, apiName, edges, encodedParams ) =
+nodePatternMatch : NodeId -> String -> NodeEdges -> Value -> ( String, Value )
+nodePatternMatch id apiName edges encodedParams =
     -- matches virtual-audio-graph api
     ( toString id
     , list [ string apiName, encodeEdges edges, encodedParams ]
@@ -56,27 +55,27 @@ encodeNodePort nodePort =
                 , ( "destination", string param )
                 ]
     in
-        case nodePort of
-            Output ->
-                string "output"
+    case nodePort of
+        Output ->
+            string "output"
 
-            Input id ->
-                toStringValue id
+        Input id ->
+            toStringValue id
 
-            Volume id ->
-                keyDestObject id "gain"
+        Volume id ->
+            keyDestObject id "gain"
 
-            Frequency id ->
-                keyDestObject id "frequency"
+        Frequency id ->
+            keyDestObject id "frequency"
 
-            Detune id ->
-                keyDestObject id "detune"
+        Detune id ->
+            keyDestObject id "detune"
 
-            Q id ->
-                keyDestObject id "q"
+        Q id ->
+            keyDestObject id "q"
 
-            DelayTime id ->
-                keyDestObject id "delayTime"
+        DelayTime id ->
+            keyDestObject id "delayTime"
 
 
 encodeGainParams : GainParams -> Value
