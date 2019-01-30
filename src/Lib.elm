@@ -1,4 +1,4 @@
-module Lib exposing (AudioGraph, AudioInput(..), AudioNode(..), BiquadFilterDefaults, BiquadFilterParams, DelayDefaults, DelayParams, FilterMode(..), GainDefaults, GainParams, NodeEdges, NodeId, NodePort(..), OscillatorDefaults, OscillatorParams, Waveform(..), delayDefaults, delayParams, delayTime, detune, encodeFilterMode, encodeWaveform, filterDefaults, filterParams, frequency, gainDefaults, gainParams, input, nodeToString, oscillatorDefaults, oscillatorParams, q, volume)
+module Lib exposing (AudioGraph, AudioInput(..), AudioNode(..), BiquadFilterDefaults, BiquadFilterParams, DelayDefaults, DelayParams, FilterMode(..), GainDefaults, GainParams, NodeEdges, NodeId, NodePort(..), OscillatorDefaults, OscillatorParams, Waveform(..), delayDefaults, delayParams, delayTime, detune, encodeFilterMode, encodeWaveform, filterDefaults, filterParams, frequency, gainDefaults, gainParams, input, oscillatorDefaults, oscillatorParams, q, volume)
 
 import Json.Encode
 
@@ -31,22 +31,6 @@ type Waveform
     | Square
     | Sawtooth
     | Triangle
-
-
-nodeToString : AudioNode -> String
-nodeToString audioNode =
-    case audioNode of
-        Gain gainParams_ nodeEdges ->
-            "gain node toString"
-
-        Oscillator oscillatorParams_ nodeEdges ->
-            "oscillator node toString"
-
-        Filter biquadFilterParams nodeEdges ->
-            "filter node toString"
-
-        Delay delayParams_ nodeEdges ->
-            "delay node toString"
 
 
 encodeWaveform : Waveform -> Json.Encode.Value

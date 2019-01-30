@@ -2,7 +2,7 @@ module App exposing (Model, Msg(..), audioGraph, init, main, subscriptions, upda
 
 import Browser
 import Browser.Events exposing (onMouseMove)
-import Encode exposing (updateAudioGraph)
+import Encode exposing (nodeToString, updateAudioGraph)
 import Html exposing (Html, br, div, text)
 import Json.Decode
 import Lib exposing (..)

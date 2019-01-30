@@ -1,4 +1,4 @@
-port module Encode exposing (updateAudioGraph)
+port module Encode exposing (nodeToString, updateAudioGraph)
 
 import Json.Encode exposing (Value, float, int, list, object, string)
 import Lib exposing (..)
@@ -31,6 +31,12 @@ encodeNode node =
 
         Delay params edges ->
             nodePatternMatch params.id "delay" edges (encodeDelayParams params)
+
+
+nodeToString : AudioNode -> String
+nodeToString audioNode =
+    Tuple.mapSecond (Json.Encode.encode 2) (encodeNode audioNode)
+        |> (\( name, values ) -> name ++ ": " ++ values)
 
 
 nodePatternMatch : NodeId -> String -> NodeEdges -> Value -> ( String, Value )
@@ -111,9 +117,11 @@ encodeDelayParams node =
         ]
 
 
+toStringValue : Int -> Value
 toStringValue =
     string << String.fromInt
 
 
+toLowerStringValue : Int -> Value
 toLowerStringValue =
     string << String.toLower << String.fromInt
