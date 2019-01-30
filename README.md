@@ -5,7 +5,7 @@ Powered by [virtual-audio-graph](https://github.com/benji6/virtual-audio-graph) 
 
 ```sh
 npm i
-elm-app start
+npx elm-app start
 ```
 
 ## Demo

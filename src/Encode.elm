@@ -1,6 +1,6 @@
-port module Encode exposing (updateAudioGraph)
+port module Encode exposing (nodeToString, updateAudioGraph)
 
-import Json.Encode exposing (Value, list, object, string, float, int)
+import Json.Encode exposing (Value, float, int, list, object, string)
 import Lib exposing (..)
 
 
@@ -19,32 +19,37 @@ encodeGraph =
 
 encodeNode : AudioNode -> ( String, Value )
 encodeNode node =
-    nodePatternMatch <|
-        case node of
-            Gain params edges ->
-                ( params.id, "gain", edges, encodeGainParams params )
+    case node of
+        Gain params edges ->
+            nodePatternMatch params.id "gain" edges (encodeGainParams params)
 
-            Oscillator params edges ->
-                ( params.id, "oscillator", edges, encodeOscillatorParams params )
+        Oscillator params edges ->
+            nodePatternMatch params.id "oscillator" edges (encodeOscillatorParams params)
 
-            Filter params edges ->
-                ( params.id, "biquadFilter", edges, encodeFilterParams params )
+        Filter params edges ->
+            nodePatternMatch params.id "biquadFilter" edges (encodeFilterParams params)
 
-            Delay params edges ->
-                ( params.id, "delay", edges, encodeDelayParams params )
+        Delay params edges ->
+            nodePatternMatch params.id "delay" edges (encodeDelayParams params)
 
 
-nodePatternMatch : ( NodeId, String, NodeEdges, Value ) -> ( String, Value )
-nodePatternMatch ( id, apiName, edges, encodedParams ) =
+nodeToString : AudioNode -> String
+nodeToString audioNode =
+    Tuple.mapSecond (Json.Encode.encode 2) (encodeNode audioNode)
+        |> (\( name, values ) -> name ++ ": " ++ values)
+
+
+nodePatternMatch : NodeId -> String -> NodeEdges -> Value -> ( String, Value )
+nodePatternMatch id apiName edges encodedParams =
     -- matches virtual-audio-graph api
-    ( toString id
-    , list [ string apiName, encodeEdges edges, encodedParams ]
+    ( String.fromInt id
+    , list identity [ string apiName, encodeEdges edges, encodedParams ]
     )
 
 
 encodeEdges : NodeEdges -> Value
 encodeEdges =
-    list << List.map encodeNodePort
+    list encodeNodePort
 
 
 encodeNodePort : NodePort NodeId -> Value
@@ -56,27 +61,27 @@ encodeNodePort nodePort =
                 , ( "destination", string param )
                 ]
     in
-        case nodePort of
-            Output ->
-                string "output"
+    case nodePort of
+        Output ->
+            string "output"
 
-            Input id ->
-                toStringValue id
+        Input id ->
+            toStringValue id
 
-            Volume id ->
-                keyDestObject id "gain"
+        Volume id ->
+            keyDestObject id "gain"
 
-            Frequency id ->
-                keyDestObject id "frequency"
+        Frequency id ->
+            keyDestObject id "frequency"
 
-            Detune id ->
-                keyDestObject id "detune"
+        Detune id ->
+            keyDestObject id "detune"
 
-            Q id ->
-                keyDestObject id "q"
+        Q id ->
+            keyDestObject id "q"
 
-            DelayTime id ->
-                keyDestObject id "delayTime"
+        DelayTime id ->
+            keyDestObject id "delayTime"
 
 
 encodeGainParams : GainParams -> Value
@@ -88,7 +93,7 @@ encodeGainParams node =
 encodeOscillatorParams : OscillatorParams -> Value
 encodeOscillatorParams node =
     object
-        [ ( "type", toLowerStringValue node.waveform )
+        [ ( "type", encodeWaveform node.waveform )
         , ( "frequency", float node.frequency )
         , ( "detune", float node.detune )
         ]
@@ -97,7 +102,7 @@ encodeOscillatorParams node =
 encodeFilterParams : BiquadFilterParams -> Value
 encodeFilterParams node =
     object
-        [ ( "type", toLowerStringValue node.mode )
+        [ ( "type", encodeFilterMode node.mode )
         , ( "frequency", float node.frequency )
         , ( "Q", float node.q )
         , ( "detune", float node.detune )
@@ -112,9 +117,11 @@ encodeDelayParams node =
         ]
 
 
+toStringValue : Int -> Value
 toStringValue =
-    string << toString
+    string << String.fromInt
 
 
+toLowerStringValue : Int -> Value
 toLowerStringValue =
-    string << String.toLower << toString
+    string << String.toLower << String.fromInt

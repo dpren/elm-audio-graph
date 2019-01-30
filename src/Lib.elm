@@ -1,4 +1,6 @@
-module Lib exposing (..)
+module Lib exposing (AudioGraph, AudioInput(..), AudioNode(..), BiquadFilterDefaults, BiquadFilterParams, DelayDefaults, DelayParams, FilterMode(..), GainDefaults, GainParams, NodeEdges, NodeId, NodePort(..), OscillatorDefaults, OscillatorParams, Waveform(..), delayDefaults, delayParams, delayTime, detune, encodeFilterMode, encodeWaveform, filterDefaults, filterParams, frequency, gainDefaults, gainParams, input, oscillatorDefaults, oscillatorParams, q, volume)
+
+import Json.Encode
 
 
 type alias AudioGraph =
@@ -31,6 +33,24 @@ type Waveform
     | Triangle
 
 
+encodeWaveform : Waveform -> Json.Encode.Value
+encodeWaveform v =
+    Json.Encode.string <|
+        String.toLower <|
+            case v of
+                Sine ->
+                    "Sine"
+
+                Square ->
+                    "Square"
+
+                Sawtooth ->
+                    "Sawtooth"
+
+                Triangle ->
+                    "Triangle"
+
+
 type FilterMode
     = Lowpass
     | Highpass
@@ -40,6 +60,36 @@ type FilterMode
     | Peaking
     | Notch
     | Allpass
+
+
+encodeFilterMode : FilterMode -> Json.Encode.Value
+encodeFilterMode v =
+    Json.Encode.string <|
+        String.toLower <|
+            case v of
+                Lowpass ->
+                    "Lowpass"
+
+                Highpass ->
+                    "Highpass"
+
+                Bandpass ->
+                    "Bandpass"
+
+                Lowshelf ->
+                    "Lowshelf"
+
+                Highshelf ->
+                    "Highshelf"
+
+                Peaking ->
+                    "Peaking"
+
+                Notch ->
+                    "Notch"
+
+                Allpass ->
+                    "Allpass"
 
 
 
