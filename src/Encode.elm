@@ -21,29 +21,29 @@ encodeNode : AudioNode -> ( String, Value )
 encodeNode node =
     case node of
         Gain params edges ->
-            nodePatternMatch params.id "gain" edges encodeGainParams params
+            nodePatternMatch params.id "gain" edges (encodeGainParams params)
 
         Oscillator params edges ->
-            nodePatternMatch params.id "oscillator" edges encodeOscillatorParams params
+            nodePatternMatch params.id "oscillator" edges (encodeOscillatorParams params)
 
         Filter params edges ->
-            nodePatternMatch params.id "biquadFilter" edges encodeFilterParams params
+            nodePatternMatch params.id "biquadFilter" edges (encodeFilterParams params)
 
         Delay params edges ->
-            nodePatternMatch params.id "delay" edges encodeDelayParams params
+            nodePatternMatch params.id "delay" edges (encodeDelayParams params)
 
 
 nodePatternMatch : NodeId -> String -> NodeEdges -> Value -> ( String, Value )
 nodePatternMatch id apiName edges encodedParams =
     -- matches virtual-audio-graph api
-    ( toString id
-    , list [ string apiName, encodeEdges edges, encodedParams ]
+    ( String.fromInt id
+    , list identity [ string apiName, encodeEdges edges, encodedParams ]
     )
 
 
 encodeEdges : NodeEdges -> Value
 encodeEdges =
-    list << List.map encodeNodePort
+    list encodeNodePort
 
 
 encodeNodePort : NodePort NodeId -> Value
@@ -112,4 +112,8 @@ encodeDelayParams node =
 
 
 toStringValue =
-    string << toString
+    string << String.fromInt
+
+
+toLowerStringValue =
+    string << String.toLower << String.fromInt

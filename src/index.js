@@ -8,7 +8,9 @@ if (typeof window.AudioContext === 'undefined') {
 }
 
 const root = document.getElementById('root');
-const app = Elm.App.embed(root);
+var app = Elm.Elm.App.init({
+  node: root
+});
 
 const audioContext = new AudioContext();
 const virtualAudioGraph = createVirtualAudioGraph({
@@ -17,8 +19,5 @@ const virtualAudioGraph = createVirtualAudioGraph({
 });
 
 app.ports.renderContextJs.subscribe(function(graph) {
-  // console.log(graph);
   virtualAudioGraph.update(graph);
 });
-
-// window.v = virtualAudioGraph;

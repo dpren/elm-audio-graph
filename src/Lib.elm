@@ -1,4 +1,4 @@
-module Lib exposing (AudioGraph, AudioInput(..), AudioNode(..), BiquadFilterDefaults, BiquadFilterParams, DelayDefaults, DelayParams, FilterMode(..), GainDefaults, GainParams, NodeEdges, NodeId, NodePort(..), OscillatorDefaults, OscillatorParams, Waveform(..), delayDefaults, delayParams, delayTime, detune, encodeWaveform, filterDefaults, filterParams, frequency, gainDefaults, gainParams, input, oscillatorDefaults, oscillatorParams, q, volume)
+module Lib exposing (AudioGraph, AudioInput(..), AudioNode(..), BiquadFilterDefaults, BiquadFilterParams, DelayDefaults, DelayParams, FilterMode(..), GainDefaults, GainParams, NodeEdges, NodeId, NodePort(..), OscillatorDefaults, OscillatorParams, Waveform(..), delayDefaults, delayParams, delayTime, detune, encodeFilterMode, encodeWaveform, filterDefaults, filterParams, frequency, gainDefaults, gainParams, input, nodeToString, oscillatorDefaults, oscillatorParams, q, volume)
 
 import Json.Encode
 
@@ -33,7 +33,23 @@ type Waveform
     | Triangle
 
 
-encodeWaveform : Waveform -> Value
+nodeToString : AudioNode -> String
+nodeToString audioNode =
+    case audioNode of
+        Gain gainParams_ nodeEdges ->
+            "gain node toString"
+
+        Oscillator oscillatorParams_ nodeEdges ->
+            "oscillator node toString"
+
+        Filter biquadFilterParams nodeEdges ->
+            "filter node toString"
+
+        Delay delayParams_ nodeEdges ->
+            "delay node toString"
+
+
+encodeWaveform : Waveform -> Json.Encode.Value
 encodeWaveform v =
     Json.Encode.string <|
         String.toLower <|
@@ -68,28 +84,28 @@ encodeFilterMode v =
         String.toLower <|
             case v of
                 Lowpass ->
-                    Json.Encode.string "Lowpass"
+                    "Lowpass"
 
                 Highpass ->
-                    Json.Encode.string "Highpass"
+                    "Highpass"
 
                 Bandpass ->
-                    Json.Encode.string "Bandpass"
+                    "Bandpass"
 
                 Lowshelf ->
-                    Json.Encode.string "Lowshelf"
+                    "Lowshelf"
 
                 Highshelf ->
-                    Json.Encode.string "Highshelf"
+                    "Highshelf"
 
                 Peaking ->
-                    Json.Encode.string "Peaking"
+                    "Peaking"
 
                 Notch ->
-                    Json.Encode.string "Notch"
+                    "Notch"
 
                 Allpass ->
-                    Json.Encode.string "Allpass"
+                    "Allpass"
 
 
 

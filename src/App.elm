@@ -1,9 +1,11 @@
-module App exposing (..)
+module App exposing (Model, Msg(..), audioGraph, init, main, subscriptions, update, view)
 
-import Html exposing (Html, text, div, br)
-import Mouse exposing (Position)
-import Lib exposing (..)
+import Browser
+import Browser.Events exposing (onMouseMove)
 import Encode exposing (updateAudioGraph)
+import Html exposing (Html, br, div, text)
+import Json.Decode
+import Lib exposing (..)
 
 
 audioGraph : Model -> AudioGraph
@@ -24,21 +26,21 @@ audioGraph model =
         master =
             gainParams 4 { gainDefaults | volume = model.y * 0.001 }
     in
-        [ Oscillator lfo [ input lfoGain ]
-        , Gain lfoGain [ frequency lowpass ]
-        , Oscillator saw [ input lowpass ]
-        , Filter lowpass [ input master ]
-        , Gain master [ Output ]
-        ]
+    [ Oscillator lfo [ input lfoGain ]
+    , Gain lfoGain [ frequency lowpass ]
+    , Oscillator saw [ input lowpass ]
+    , Filter lowpass [ input master ]
+    , Gain master [ Output ]
+    ]
 
 
 
 ----- PROGRAM ----
 
 
-main : Program Never Model Msg
+main : Program Flags Model Msg
 main =
-    Html.program
+    Browser.element
         { init = init
         , view = view
         , update = update
@@ -56,9 +58,13 @@ type alias Model =
     }
 
 
-init : ( Model, Cmd Msg )
+type alias Flags =
+    ()
+
+
+init : Flags -> ( Model, Cmd Msg )
 init =
-    ( { x = 0, y = 0 }, Cmd.none )
+    always ( { x = 0, y = 0 }, Cmd.none )
 
 
 
@@ -84,7 +90,11 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Mouse.moves (\{ x, y } -> Position x y)
+    onMouseMove
+        (Json.Decode.map2 Position
+            (Json.Decode.field "clientX" Json.Decode.int)
+            (Json.Decode.field "clientY" Json.Decode.int)
+        )
 
 
 
@@ -94,11 +104,11 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div []
-        [ div [] [ text ("x: " ++ (toString model.x) ++ "  y: " ++ (toString model.y)) ]
+        [ div [] [ text ("x: " ++ String.fromFloat model.x ++ "  y: " ++ String.fromFloat model.y) ]
         , br [] []
         , div []
             (List.map
-                (\node -> div [] [ text (toString <| node) ])
+                (\node -> div [] [ text (nodeToString node) ])
                 (audioGraph model)
             )
         ]
