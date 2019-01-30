@@ -1,5 +1,5 @@
 import './main.css'
-const Elm = require('./App.elm');
+const { Elm } = require('./App.elm');
 const createVirtualAudioGraph = require('virtual-audio-graph');
 
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -8,7 +8,7 @@ if (typeof window.AudioContext === 'undefined') {
 }
 
 const root = document.getElementById('root');
-var app = Elm.Elm.App.init({
+var app = Elm.App.init({
   node: root
 });
 
