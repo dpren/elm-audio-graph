@@ -13,6 +13,8 @@ Volume Warning!
 
 [dpren.github.io/elm-audio-graph](https://dpren.github.io/elm-audio-graph)
 
+(you may need to enable "Sound" in your browser's site settings, this demo doesn't obey the policies for autoplay very well; which requires an initial user interaction)
+
 
 ## Build scripts
 This project is bootstrapped with [Create Elm App](https://github.com/halfzebra/create-elm-app).
